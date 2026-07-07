@@ -3,11 +3,14 @@ from typing import Optional
 
 from metronome import Metronome
 
+from common.app_settings import get_app_settings
 from schemas.events import ImageGenerationEvent
 
 
+settings = get_app_settings()
+
 class MetronomeClient:
-    def __init__(self, bearer_token: str):
+    def __init__(self, bearer_token: str = settings.metronome.bearer_token):
         self.client = Metronome(bearer_token=bearer_token)
 
     def send_image_generation_event(
@@ -40,7 +43,7 @@ class MetronomeClient:
         if properties:
             payload["properties"] = properties
 
-        self.client.v1.usage.ingest(payload)
+        self.client.v1.usage.ingest(usage=[payload])
 
     def _to_rfc3339(self, dt: datetime) -> str:
         return dt.astimezone(timezone.utc).replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
