@@ -7,4 +7,5 @@ requires-python = ">=3.12"
 dependencies = [
     "dotenv>=0.9.9",
     "metronome-sdk>=4.9.0",
+    "pydantic-settings>=2.14.2",
 ]
