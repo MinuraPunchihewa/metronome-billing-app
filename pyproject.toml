@@ -1,0 +1,10 @@
+[project]
+name = "metronome-billing-app"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dotenv>=0.9.9",
+    "metronome-sdk>=4.9.0",
+]
