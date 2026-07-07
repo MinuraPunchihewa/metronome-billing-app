@@ -19,7 +19,6 @@ class ImageGenerationRequest(BaseModel):
     def to_event(self) -> ImageGenerationEvent:
         return ImageGenerationEvent(
             customer_id=self.customer_id,
-            event_type=self.event_type,
             timestamp=self.timestamp,
             transaction_id=self.transaction_id,
             properties={
