@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 class ImageGenerationEvent(BaseModel):
     customer_id: str
-    event_type: str
+    event_type: str = "image_generation"
     properties: Optional[dict] = None
     timestamp: datetime
     transaction_id: str

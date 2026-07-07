@@ -10,7 +10,6 @@ settings = get_app_settings()
 class ImageGenerationRequest(BaseModel):
     transaction_id: str
     customer_id: str = settings.metronome.demo_customer_alias
-    event_type: str = "image_generation"
     tier: str
     num_images: int = 1
     model: str
