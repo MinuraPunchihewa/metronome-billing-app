@@ -1,9 +1,10 @@
 from datetime import datetime
-from typing import Optional
+from typing import Final, Optional
 
 from pydantic import BaseModel
 
-from client.events import IMAGE_GENERATION_EVENT_TYPE
+
+IMAGE_GENERATION_EVENT_TYPE: Final = "image_generation"
 
 
 class ImageGenerationEvent(BaseModel):

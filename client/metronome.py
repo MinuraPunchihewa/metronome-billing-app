@@ -4,13 +4,6 @@ from typing import Dict, List, Optional
 from metronome import Metronome
 
 from common.app_settings import get_app_settings
-from client.events import IMAGE_GENERATION_EVENT_TYPE
-from client.metrics import (
-    IMAGE_GENERATION_BILLABLE_METRIC_NAME,
-    IMAGE_GENERATION_BILLABLE_METRIC_GROUP_KEYS,
-    IMAGE_GENERATION_BILLABLE_METRIC_AGGREGATION_KEY,
-)
-from schemas.events import ImageGenerationEvent
 
 
 settings = get_app_settings()
@@ -19,19 +12,7 @@ class MetronomeClient:
     def __init__(self, bearer_token: str = settings.metronome.bearer_token):
         self.client = Metronome(bearer_token=bearer_token)
 
-    def send_image_generation_event(
-        self,
-        event: ImageGenerationEvent,
-    ) -> None:
-        self._send_usage_event(
-            customer_id=event.customer_id,
-            event_type=event.event_type,
-            properties=event.properties,
-            timestamp=event.timestamp,
-            transaction_id=event.transaction_id,
-        )
-
-    def _send_usage_event(
+    def send_usage_event(
         self,
         *,
         customer_id: str,
@@ -54,19 +35,7 @@ class MetronomeClient:
     def _to_rfc3339(self, dt: datetime) -> str:
         return dt.astimezone(timezone.utc).replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    def create_image_generation_billable_metric(self) -> None:
-        return self._create_billable_metric(
-            name=IMAGE_GENERATION_BILLABLE_METRIC_NAME,
-            event_type=IMAGE_GENERATION_EVENT_TYPE,
-            aggregation_key=IMAGE_GENERATION_BILLABLE_METRIC_AGGREGATION_KEY,
-            group_keys=IMAGE_GENERATION_BILLABLE_METRIC_GROUP_KEYS,
-            property_filters=[
-                {"name": "image_type", "exists": True},
-                {"name": "num_images", "exists": True},
-            ]
-        )
-
-    def _create_billable_metric(
+    def create_billable_metric(
         self,
         *,
         name: str,
@@ -89,4 +58,62 @@ class MetronomeClient:
             params["property_filters"] = property_filters
 
         response = self.client.v1.billable_metrics.create(**params)
+        return response.data.model_dump() if hasattr(response, "data") else {}
+
+    def list_billable_metrics(self) -> List[Dict]:
+        response = self.client.v1.billable_metrics.list()
+        return [metric.model_dump() for metric in getattr(response, "data", [])]
+    
+    def create_product(
+        self,
+        *,
+        name: str,
+        billable_metric_id: str,
+        pricing_group_key: Optional[List[str]] = None,
+        presentation_group_key: Optional[List[str]] = None,
+    ) -> Dict:
+        payload = {
+            "name": name,
+            "type": "USAGE",
+            "billable_metric_id": billable_metric_id,
+        }
+        if pricing_group_key:
+            payload["pricing_group_key"] = pricing_group_key
+        if presentation_group_key:
+            payload["presentation_group_key"] = presentation_group_key
+        response = self.client.v1.contracts.products.create(**payload)
+        return response.data.model_dump() if hasattr(response, "data") else {}
+
+    def create_rate_card(
+        self,
+        *,
+        name: str,
+        description: str = "",
+    ) -> Dict:
+        response = self.client.v1.contracts.rate_cards.create(
+            name=name,
+            description=description or f"Pricing for {name}",
+        )
+        return response.data.model_dump() if hasattr(response, "data") else {}
+
+    def add_flat_rate(
+        self,
+        *,
+        rate_card_id: str,
+        product_id: str,
+        price_cents: int,
+        starting_at: str,
+        pricing_group_values: Optional[Dict[str, str]] = None,
+    ) -> Dict:
+        payload = {
+            "rate_card_id": rate_card_id,
+            "product_id": product_id,
+            "entitled": True,
+            "rate_type": "FLAT",
+            "price_cents": price_cents,
+            "starting_at": starting_at,
+        }
+        if pricing_group_values:
+            payload["pricing_group_values"] = pricing_group_values
+        response = self.client.v1.contracts.rate_cards.rates.add(**payload)
         return response.data.model_dump() if hasattr(response, "data") else {}
