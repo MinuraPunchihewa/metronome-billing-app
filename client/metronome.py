@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
 from metronome import Metronome
@@ -116,4 +116,35 @@ class MetronomeClient:
         if pricing_group_values:
             payload["pricing_group_values"] = pricing_group_values
         response = self.client.v1.contracts.rate_cards.rates.add(**payload)
+        return response.data.model_dump() if hasattr(response, "data") else {}
+
+    def get_customer_by_ingest_alias(self, ingest_alias: str) -> Optional[Dict]:
+        response = self.client.v1.customers.list(ingest_alias=ingest_alias)
+        items = getattr(response, "data", []) or []
+        if items:
+            return items[0].model_dump()
+        return None
+
+    def create_contract(
+        self,
+        customer_id: str,
+        rate_card_id: str,
+        starting_at: Optional[str] = None,
+        name: Optional[str] = None,
+        net_payment_term_days: Optional[int] = None,
+    ) -> Dict:
+        if starting_at is None:
+            now = datetime.now(timezone.utc)
+            rounded = now.replace(minute=0, second=0, microsecond=0)
+            starting_at = rounded.strftime("%Y-%m-%dT%H:%M:%SZ")
+        payload = {
+            "customer_id": customer_id,
+            "rate_card_id": rate_card_id,
+            "starting_at": starting_at,
+        }
+        if name:
+            payload["name"] = name
+        if net_payment_term_days:
+            payload["net_payment_term_days"] = net_payment_term_days
+        response = self.client.v1.contracts.create(**payload)
         return response.data.model_dump() if hasattr(response, "data") else {}

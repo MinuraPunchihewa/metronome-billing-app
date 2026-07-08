@@ -1,4 +1,6 @@
 from client.metronome import MetronomeClient
+
+from common.app_settings import get_app_settings
 from schemas.events import IMAGE_GENERATION_EVENT_TYPE
 from provisioning.metrics import (
     IMAGE_GENERATION_BILLABLE_METRIC_AGGREGATION_KEY,
@@ -11,6 +13,8 @@ from provisioning.rates import (
     IMAGE_GENERATION_RATE_CARD_NAME,
     IMAGE_GENERATION_RATE_EFFECTIVE_AT,
 )
+
+settings = get_app_settings()
 
 
 def main() -> None:
@@ -60,6 +64,14 @@ def main() -> None:
         rid = rate.get("id") or rate.get("rate_id")
         rates[image_type] = {"id": rid, "price_cents": int(price)}
         print(f"Added flat rate for {image_type}.")
+
+    # Contract
+    customer = metronome_client.get_customer_by_ingest_alias(settings.metronome.demo_customer_alias)
+    contract = metronome_client.create_contract(
+        customer_id=customer["id"],
+        rate_card_id=rate_card["id"],
+    )
+    print(f"Created contract {contract['id']}.")
 
     print("Metronome provisioning complete.")
 
