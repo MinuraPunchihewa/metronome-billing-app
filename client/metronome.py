@@ -55,7 +55,7 @@ class MetronomeClient:
         return dt.astimezone(timezone.utc).replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def create_image_generation_billable_metric(self) -> None:
-        self._create_billable_metric(
+        return self._create_billable_metric(
             name=IMAGE_GENERATION_BILLABLE_METRIC_NAME,
             event_type=IMAGE_GENERATION_EVENT_TYPE,
             aggregation_key=IMAGE_GENERATION_BILLABLE_METRIC_AGGREGATION_KEY,
