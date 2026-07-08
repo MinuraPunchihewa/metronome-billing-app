@@ -110,7 +110,7 @@ class MetronomeClient:
             "product_id": product_id,
             "entitled": True,
             "rate_type": "FLAT",
-            "price_cents": price_cents,
+            "price": price_cents,
             "starting_at": starting_at,
         }
         if pricing_group_values:
