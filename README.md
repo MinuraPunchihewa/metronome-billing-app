@@ -9,6 +9,16 @@ A minimal FastAPI app for learning Metronome usage-based billing. It provisions 
 - A [Metronome](https://metronome.com) account with API access
 - A Metronome customer to bill against (used as the "demo customer")
 
+## Metronome concepts
+
+The provisioning step below creates a few Metronome objects. Briefly:
+
+- **Billable metric** — defines what usage to track and how to aggregate it (here, a count of `num_images` grouped by `image_type`).
+- **Product** — a sellable unit tied to one or more billable metrics; usage against the metric is billed under this product.
+- **Rate card** — a named collection of prices that can be attached to customer contracts.
+- **Rate** — a specific price entry on a rate card for a product (here, a flat price per image tier: `standard`, `high-res`, `ultra`).
+- **Contract** — links a customer to a rate card (with terms like payment days), determining what that customer is actually billed for their usage.
+
 ## Setup
 
 1. Clone the repo and install dependencies:
